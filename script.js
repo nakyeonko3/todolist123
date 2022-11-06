@@ -6,16 +6,26 @@ const form = document.querySelector('form'),
   removeAllButton = document.querySelector('.removeAll-button');
 
 let todolistArray = [];
+let num = 0;
 
 function handleSubmit(event) {
   event.preventDefault();
   const { value: userHtmlTextInput } = htmlInputElement;
-  const liHthmlElement = createLiHthmlElement(userHtmlTextInput);
+  num += 1;
+  const liHthmlElement = createLiHthmlElement(userHtmlTextInput, num);
+  const deleteButton = createDeleteButton('✔️');
+  liHthmlElement.appendChild(deleteButton);
   htmlOlElement.appendChild(liHthmlElement);
   storeStringTodolistArray(userHtmlTextInput);
   getTodolistArrayFromLocalStorage();
   htmlInputElement.value = '';
 }
+function createDeleteButton(shape) {
+  const deleteButton = document.createElement('button');
+  deleteButton.innerText = shape;
+  return deleteButton;
+}
+
 function getTodolistArrayFromLocalStorage() {
   const localStorageTodoListArray = JSON.parse(
     localStorage.getItem('todolistArray')
@@ -24,9 +34,10 @@ function getTodolistArrayFromLocalStorage() {
 }
 
 function deleteAll() {
+  todolistArray.forEach(() => todolistDiv.querySelector('li').remove());
   todolistArray.splice(0, todolistArray.length);
   localStorage.setItem('todolistArray', null);
-  document.querySelector('li').remove();
+  num = 0;
 }
 
 function storeTodolistArrayInLocalStorage(arr) {
@@ -34,27 +45,37 @@ function storeTodolistArrayInLocalStorage(arr) {
 }
 
 function storeStringTodolistArray(str) {
-  todolistArray = [...todolistArray, str];
+  todolistArray.push({
+    id: num,
+    innerText: str,
+  });
   storeTodolistArrayInLocalStorage(todolistArray);
 }
 
-function createLiHthmlElement(str) {
+function createLiHthmlElement(str, idNum) {
   const li = document.createElement('li');
   li.innerText = str;
+  li.id = idNum;
   return li;
 }
 
 function init() {
   form.addEventListener('submit', handleSubmit);
   removeAllButton.addEventListener('click', deleteAll);
-  console.log(todolistArray.length === 0);
-  if (todolistArray.length !== 0) {
+  const localArray = JSON.parse(localStorage.getItem('todolistArray'));
+  console.log(localArray === null);
+  if (localArray !== null) {
     const fragment = document.createDocumentFragment();
-    todolistArray = JSON.parse(localStorage.getItem('todolistArray'));
+    todolistArray = localArray;
     todolistArray.forEach((item) => {
-      fragment.appendChild(createLiHthmlElement(item));
+      const li = createLiHthmlElement(item.innerText, item.id);
+      const deleteButton = createDeleteButton('✔️');
+      li.appendChild(deleteButton);
+      fragment.appendChild(li);
     });
+    num = localArray.length;
     htmlOlElement.appendChild(fragment);
+    console.log(localArray);
   }
 }
 
