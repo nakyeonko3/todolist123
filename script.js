@@ -12,25 +12,18 @@ function handleSubmit(event) {
   event.preventDefault();
   const { value: userHtmlTextInput } = htmlInputElement;
   num += 1;
-  const liHthmlElement = createLiHthmlElement(userHtmlTextInput, num);
+  const idNum = `id${num}`;
+  const liHthmlElement = createLiHthmlElement(userHtmlTextInput, idNum);
   const deleteButton = createDeleteButton('✔️');
   liHthmlElement.appendChild(deleteButton);
   htmlOlElement.appendChild(liHthmlElement);
-  storeStringTodolistArray(userHtmlTextInput);
-  getTodolistArrayFromLocalStorage();
+  storeStringTodolistArray(userHtmlTextInput, idNum);
   htmlInputElement.value = '';
 }
 function createDeleteButton(shape) {
   const deleteButton = document.createElement('button');
   deleteButton.innerText = shape;
   return deleteButton;
-}
-
-function getTodolistArrayFromLocalStorage() {
-  const localStorageTodoListArray = JSON.parse(
-    localStorage.getItem('todolistArray')
-  );
-  console.log(localStorageTodoListArray);
 }
 
 function deleteAll() {
@@ -44,9 +37,9 @@ function storeTodolistArrayInLocalStorage(arr) {
   localStorage.setItem('todolistArray', JSON.stringify(arr));
 }
 
-function storeStringTodolistArray(str) {
+function storeStringTodolistArray(str, idNum) {
   todolistArray.push({
-    id: num,
+    id: idNum,
     innerText: str,
   });
   storeTodolistArrayInLocalStorage(todolistArray);
@@ -59,11 +52,21 @@ function createLiHthmlElement(str, idNum) {
   return li;
 }
 
+todolistDiv.addEventListener('click', (event) => {
+  const { target } = event;
+  if (target.nodeName !== 'BUTTON') return;
+  document.querySelector(`#${target.parentNode.id}`).remove();
+  todolistArray = todolistArray.filter(
+    (item) => item.id !== target.parentNode.id
+  );
+  storeTodolistArrayInLocalStorage(todolistArray);
+});
+
 function init() {
   form.addEventListener('submit', handleSubmit);
   removeAllButton.addEventListener('click', deleteAll);
   const localArray = JSON.parse(localStorage.getItem('todolistArray'));
-  console.log(localArray === null);
+
   if (localArray !== null) {
     const fragment = document.createDocumentFragment();
     todolistArray = localArray;
@@ -75,7 +78,6 @@ function init() {
     });
     num = localArray.length;
     htmlOlElement.appendChild(fragment);
-    console.log(localArray);
   }
 }
 
